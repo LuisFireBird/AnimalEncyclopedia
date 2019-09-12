@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+
+	<bean id="passwordEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+	</bean>
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<security:jdbc-user-service
+				data-source-ref="dataSource"
+				authorities-by-username-query="select username,role from usuarios where username=?"
+				users-by-username-query="select username,password,enabled from usuarios where username=?" />
+			<security:password-encoder
+				ref="passwordEncoder" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+	<security:global-method-security
+		secured-annotations="enabled"></security:global-method-security>
+	<security:http use-expressions="true">
+		<security:intercept-url access="permitAll"
+			pattern="/login" />
+		<security:intercept-url access="permitAll"
+			pattern="/createUserForm" />
+		<security:intercept-url access="permitAll"
+			pattern="/createUser" />
+		<security:intercept-url
+			access="isAuthenticated()" pattern="/" />
+		<security:intercept-url pattern="/welcomePage"
+			access="isAuthenticated()" />
+		<security:intercept-url
+			pattern="/ViewAllAnimals"
+			access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')" />
+		<security:intercept-url pattern="/AnimalSearch"
+			access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')" />
+		<security:intercept-url
+			pattern="/SearchAnimalResult"
+			access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')" />
+		<security:intercept-url
+			pattern="/CreateAnimalForm" access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url
+			pattern="/CreateAnimalResult" access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url
+			pattern="/deleteAnimalByName**" access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url
+			pattern="/updateAnimalTypeForm**" access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url
+			pattern="/updateAnimalType**" access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url access="denyAll"
+			pattern="/**" />
+		<security:form-login login-page="/login"
+			default-target-url="/welcomePage"
+			authentication-failure-url="/login?error"
+			always-use-default-target="true" />
+		<security:logout logout-success-url="/login?logout" />
+		<security:access-denied-handler
+			error-page="/errorPage" />
+	</security:http>
+</beans>

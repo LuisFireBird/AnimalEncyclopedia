@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp2.BasicDataSource"
+		destroy-method="close">
+	<property name="username" value="${jdbc.username}"></property>
+	<property name="password" value="${jdbc.password}"></property>
+	<property name="url" value="${jdbc.url}"></property>
+	<property name="driverClassName" value="${jdbc.driverClassName}"></property>
+	</bean>
+
+	<context:property-placeholder
+		location="classpath:/com/luis/config/jdbc.properties" />
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+	<property name="hibernateProperties">
+		<props>
+			<prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
+			<prop key="show_sql">true</prop>
+			<prop key="javax.persistence.validation.group.pre-persist">com.luis.entities.UserPersistanceValidationGroup</prop>
+			<prop key="javax.persistence.validation.group.pre-update">com.luis.entities.UserPersistanceValidationGroup</prop>
+			<prop key="javax.persistence.validation.group.pre-remove">com.luis.entities.UserPersistanceValidationGroup</prop>
+		</props>
+	</property>
+	<property name="dataSource" ref="dataSource"></property>
+	<property name="packagesToScan" value="com.luis.entities"></property>
+	</bean>
+	
+	<bean id="hibernateTemplate"
+		class="org.springframework.orm.hibernate5.HibernateTemplate">
+	<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<bean id="hibernateTransactionManager"
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+	<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<bean id="passwordEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+	</bean>
+	<context:component-scan base-package="com.luis.dao"></context:component-scan>
+	<context:component-scan base-package="com.luis.exception"></context:component-scan>
+	<tx:annotation-driven transaction-manager="hibernateTransactionManager"/>
+</beans>
